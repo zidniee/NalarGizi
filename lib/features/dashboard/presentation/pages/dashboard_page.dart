@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nalargizi/app/layout/main_layout.dart';
 import 'package:nalargizi/features/dashboard/presentation/widgets/dashboard_header.dart';
 import 'package:nalargizi/features/dashboard/presentation/widgets/dashboard_status_row.dart';
 import 'package:nalargizi/features/dashboard/presentation/widgets/edukasi_gizi_section.dart';
@@ -12,60 +13,63 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // 1. Latar Belakang Pink
-            Container(
-              padding: const EdgeInsets.only(
-                top: 60,
-                left: 24,
-                right: 24,
-                bottom: 32,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFF43F5E), Color(0xFFE11D48)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+    return MainLayout(
+      initialIndex: 0,
+      child: ColoredBox(
+        color: Colors.grey.shade50,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // 1. Latar Belakang Pink
+              Container(
+                padding: const EdgeInsets.only(
+                  top: 60,
+                  left: 24,
+                  right: 24,
+                  bottom: 32,
                 ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFF43F5E), Color(0xFFE11D48)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
+                ),
+                child: const Column(
+                  children: [
+                    DashboardHeader(),
+                    SizedBox(height: 24),
+                    DashboardStatusRow(),
+                  ],
                 ),
               ),
-              child: const Column(
-                children: [
-                  DashboardHeader(),
-                  SizedBox(height: 24),
-                  DashboardStatusRow(),
-                ],
-              ),
-            ),
 
-            // 2. Konten Bawah (Disusun Sesuai Figma)
-            const Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  TipHarianCard(),
-                  SizedBox(height: 20),
-                  ZScoreIndicatorCard(), // <-- Widget Baru
-                  SizedBox(height: 20),
-                  JadwalTerdekatCard(),
-                  SizedBox(height: 24),
-                  EdukasiGiziSection(), // <-- Widget Baru
-                  SizedBox(height: 24),
-                  InfoPosyanduBanner(), // <-- Widget Baru
-                  SizedBox(
-                    height: 40,
-                  ), // Ruang kosong agar tidak tertutup Bottom Navigation
-                ],
+              // 2. Konten Bawah (Disusun Sesuai Figma)
+              const Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    TipHarianCard(),
+                    SizedBox(height: 20),
+                    ZScoreIndicatorCard(), // <-- Widget Baru
+                    SizedBox(height: 20),
+                    JadwalTerdekatCard(),
+                    SizedBox(height: 24),
+                    EdukasiGiziSection(), // <-- Widget Baru
+                    SizedBox(height: 24),
+                    InfoPosyanduBanner(), // <-- Widget Baru
+                    SizedBox(
+                      height: 40,
+                    ), // Ruang kosong agar tidak tertutup Bottom Navigation
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
