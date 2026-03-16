@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nalargizi/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -72,8 +73,8 @@ class _HomePageState extends State<HomePage> {
     }
 
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeInOutCubicEmphasized,
     );
   }
 
@@ -83,8 +84,39 @@ class _HomePageState extends State<HomePage> {
     }
 
     _pageController.previousPage(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeInOutCubicEmphasized,
+    );
+  }
+
+  Widget _buildDots() {
+    return AnimatedBuilder(
+      animation: _pageController,
+      builder: (context, child) {
+        final currentPage = _pageController.hasClients
+            ? (_pageController.page ?? _currentIndex.toDouble())
+            : _currentIndex.toDouble();
+
+        final baseIndex = currentPage.floor().clamp(0, _items.length - 1);
+        final nextIndex = (baseIndex + 1).clamp(0, _items.length - 1);
+        final t = (currentPage - baseIndex).clamp(0.0, 1.0);
+        final activeColor =
+            Color.lerp(_items[baseIndex].color, _items[nextIndex].color, t) ??
+            _items[baseIndex].color;
+
+        return SmoothPageIndicator(
+          controller: _pageController,
+          count: _items.length,
+          effect: WormEffect(
+            dotHeight: 10,
+            dotWidth: 10,
+            spacing: 10,
+            radius: 100,
+            dotColor: const Color(0xFFCBD5E1),
+            activeDotColor: activeColor,
+          ),
+        );
+      },
     );
   }
 
@@ -185,27 +217,14 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               const SizedBox(height: 34),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(_items.length, (
-                                  dotIndex,
-                                ) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    child: _OnboardingDot(
-                                      isActive: dotIndex == _currentIndex,
-                                      activeColor: item.color,
-                                    ),
-                                  );
-                                }),
-                              ),
                             ],
                           );
                         },
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    _buildDots(),
+                    const SizedBox(height: 22),
                     Row(
                       children: [
                         if (_currentIndex > 0)
@@ -263,29 +282,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _OnboardingDot extends StatelessWidget {
-  final bool isActive;
-  final Color activeColor;
-
-  const _OnboardingDot({
-    this.isActive = false,
-    this.activeColor = const Color(0xFFF43F5E),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: isActive ? 30 : 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: isActive ? activeColor : const Color(0xFFCBD5E1),
-        borderRadius: BorderRadius.circular(100),
       ),
     );
   }
