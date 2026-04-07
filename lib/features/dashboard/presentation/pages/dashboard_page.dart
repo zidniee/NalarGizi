@@ -63,7 +63,7 @@ class DashboardPage extends StatelessWidget {
                     SizedBox(height: 24),
                     InfoPosyanduBanner(), // <-- Widget Baru
                     SizedBox(
-                      height: 40,
+                      height: 100,
                     ), // Ruang kosong agar tidak tertutup Bottom Navigation
                   ],
                 ),
