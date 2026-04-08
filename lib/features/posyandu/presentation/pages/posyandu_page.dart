@@ -47,13 +47,19 @@ class _PosyanduPageState extends State<PosyanduPage> {
   }
 
   void _seedLocalData(PosyanduState state) {
-    if (_seededFromApi || state.status != PosyanduStatus.success || state.data == null) {
+    if (_seededFromApi ||
+        state.status != PosyanduStatus.success ||
+        state.data == null) {
       return;
     }
 
     setState(() {
-      _upcomingItems = List<PosyanduScheduleItemEntity>.from(state.upcomingSchedules);
-      _historyItems = List<PosyanduScheduleItemEntity>.from(state.completedSchedules);
+      _upcomingItems = List<PosyanduScheduleItemEntity>.from(
+        state.upcomingSchedules,
+      );
+      _historyItems = List<PosyanduScheduleItemEntity>.from(
+        state.completedSchedules,
+      );
       _immunizations = List<ImmunizationItemEntity>.from(state.immunizations);
       _seededFromApi = true;
     });
@@ -89,6 +95,8 @@ class _PosyanduPageState extends State<PosyanduPage> {
         builder: (context, state) {
           final showInitialLoader =
               state.status == PosyanduStatus.loading && !_seededFromApi;
+          final bottomMenuClearance =
+              MediaQuery.paddingOf(context).bottom + 128;
 
           return MainLayout(
             initialIndex: 4,
@@ -97,7 +105,7 @@ class _PosyanduPageState extends State<PosyanduPage> {
               child: showInitialLoader
                   ? const Center(child: CircularProgressIndicator())
                   : ListView(
-                      padding: EdgeInsets.zero,
+                      padding: EdgeInsets.only(bottom: bottomMenuClearance),
                       children: [
                         PosyanduHeader(
                           upcomingCount: _upcomingItems.length,
@@ -143,10 +151,7 @@ class _PosyanduPageState extends State<PosyanduPage> {
 }
 
 class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorBanner({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -163,10 +168,7 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: Color(0xFFE11D48),
-          ),
+          const Icon(Icons.warning_amber_rounded, color: Color(0xFFE11D48)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -177,10 +179,7 @@ class _ErrorBanner extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Coba Lagi'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('Coba Lagi')),
         ],
       ),
     );
