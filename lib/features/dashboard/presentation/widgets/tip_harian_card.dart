@@ -8,8 +8,8 @@ class TipHarianCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber[50], // Background amber-50
-        border: Border.all(color: Colors.amber[200]!), // Border amber-200
+        color: Colors.amber[50],
+        border: Border.all(color: Colors.amber[200]!),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
