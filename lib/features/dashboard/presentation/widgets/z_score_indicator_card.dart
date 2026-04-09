@@ -71,9 +71,7 @@ class ZScoreIndicatorCard extends StatelessWidget {
             children: [
               const SizedBox(height: 12, width: double.infinity),
               Positioned(
-                left:
-                    MediaQuery.of(context).size.width *
-                    0.45, // Mengatur posisi titik di area Normal
+                left: MediaQuery.of(context).size.width * 0.45,
                 child: Container(
                   width: 12,
                   height: 12,

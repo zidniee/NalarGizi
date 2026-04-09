@@ -1,5 +1,5 @@
 import 'dart:ui' show clampDouble;
-
+import 'package:nalargizi/features/quick_add/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
@@ -150,7 +150,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => onTap(2),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (BuildContext context) {
+                                return const QuickAddBottomSheet();
+                              },
+                            );
+                          },
                           customBorder: const CircleBorder(),
                           child: Container(
                             width: outerButtonSize,

@@ -20,12 +20,22 @@ class EdukasiGiziSection extends StatelessWidget {
                 color: Color(0xFF1E293B),
               ),
             ),
-            Text(
-              "Lihat Semua",
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.pink[500],
+            GestureDetector(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Membuka halaman Semua Video Edukasi...'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: Text(
+                "Lihat Semua",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.pink[500],
+                ),
               ),
             ),
           ],
@@ -35,10 +45,11 @@ class EdukasiGiziSection extends StatelessWidget {
         // Daftar Video Scroll Horizontal
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none, // Agar shadow tidak terpotong
+          clipBehavior: Clip.none,
           child: Row(
             children: [
               _buildVideoCard(
+                context,
                 "Resep MPASI Ayam Anti Stunting",
                 "03:15",
                 "Nutrisi",
@@ -49,6 +60,7 @@ class EdukasiGiziSection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               _buildVideoCard(
+                context,
                 "Pentingnya 1000 Hari Pertama",
                 "05:42",
                 "Edukasi",
@@ -59,6 +71,7 @@ class EdukasiGiziSection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               _buildVideoCard(
+                context,
                 "Stimulasi Motorik Anak Usia 12-18 Bulan",
                 "04:20",
                 "Tumbuh",
@@ -75,6 +88,7 @@ class EdukasiGiziSection extends StatelessWidget {
   }
 
   Widget _buildVideoCard(
+    BuildContext context,
     String title,
     String duration,
     String tag,
@@ -83,95 +97,108 @@ class EdukasiGiziSection extends StatelessWidget {
     Color tagBg,
     Color tagText,
   ) {
-    return Container(
-      width: 160,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[100]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Memutar video: $title...'),
+            behavior: SnackBarBehavior.floating,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Thumbnail Video
-          Container(
-            height: 90,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              gradient: LinearGradient(colors: [gradStart, gradEnd]),
+        );
+      },
+      child: Container(
+        width: 160,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[100]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-            child: Stack(
-              children: [
-                const Center(
-                  child: Icon(Icons.videocam, color: Colors.white, size: 24),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Thumbnail Video
+            Container(
+              height: 90,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
                 ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: tagBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: tagText,
+                gradient: LinearGradient(colors: [gradStart, gradEnd]),
+              ),
+              child: Stack(
+                children: [
+                  const Center(
+                    child: Icon(Icons.videocam, color: Colors.white, size: 24),
+                  ),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: tagBg,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: tagText,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      duration,
-                      style: const TextStyle(fontSize: 9, color: Colors.white),
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        duration,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // Judul Video
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                ],
               ),
             ),
-          ),
-        ],
+            // Judul Video
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

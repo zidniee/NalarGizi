@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/quick_add_summary_card.dart';
+import '../widgets/quick_add_bottom_sheet.dart';
 
 class QuickAddPage extends StatelessWidget {
   const QuickAddPage({super.key});
@@ -11,7 +11,7 @@ class QuickAddPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Quick Add')),
       body: const Padding(
         padding: EdgeInsets.all(16),
-        child: QuickAddSummaryCard(),
+        child: QuickAddBottomSheet(),
       ),
     );
   }
