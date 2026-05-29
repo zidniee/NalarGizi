@@ -7,20 +7,36 @@ import 'package:nalargizi/features/home/home.dart';
 import 'package:nalargizi/features/nutrition/presentation/pages/nutrition_page.dart';
 import 'package:nalargizi/features/posyandu/presentation/pages/posyandu_page.dart';
 import 'package:nalargizi/features/profile/presentation/pages/profile_page.dart';
+import 'package:nalargizi/features/profile/presentation/pages/notification_page.dart';
 import 'package:nalargizi/features/quick_add/presentation/pages/quick_add_page.dart';
-
 import 'theme/app_theme.dart';
 
 class NalarGiziApp extends StatelessWidget {
-  const NalarGiziApp({super.key});
+  const NalarGiziApp({
+    super.key,
+    required this.onboardingCompleted,
+    required this.isLoggedIn,
+  });
+
+  final bool onboardingCompleted;
+  final bool isLoggedIn;
 
   @override
   Widget build(BuildContext context) {
+    final Widget initialScreen;
+    if (!onboardingCompleted) {
+      initialScreen = const HomePage();
+    } else if (isLoggedIn) {
+      initialScreen = const DashboardPage();
+    } else {
+      initialScreen = const LoginPage();
+    }
+
     return MaterialApp(
-      title: 'NalarGizi',
+      title: 'Nalar Gizi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      home: const HomePage(),
+      home: initialScreen,
       routes: {
         AppRouter.home: (_) => const HomePage(),
         AppRouter.login: (_) => const LoginPage(),
@@ -30,6 +46,7 @@ class NalarGiziApp extends StatelessWidget {
         AppRouter.posyandu: (_) => const PosyanduPage(),
         AppRouter.quickAdd: (_) => const QuickAddPage(),
         AppRouter.profile: (_) => const ProfilePage(),
+        AppRouter.notifications: (_) => const NotificationPage(),
       },
     );
   }

@@ -1,103 +1,98 @@
 import 'package:dio/dio.dart';
+import 'package:nalargizi/core/error/exceptions.dart';
 import 'package:nalargizi/core/network/api_endpoints.dart';
-import 'package:nalargizi/core/network/network_exception.dart';
+import 'package:nalargizi/core/network/api_response.dart';
+import 'package:nalargizi/features/posyandu/domain/entities/posyandu_schedule_item_entity.dart';
 
 import '../models/posyandu_model.dart';
+import '../models/posyandu_schedule_item_model.dart';
 
+/// Remote data source for Posyandu feature.
+///
+/// Source: claude2.md §1 — Wrap response with ApiResponse
+/// Source: claude2.md §2 — Datasource throws Exception
 class PosyanduRemoteDataSource {
   const PosyanduRemoteDataSource(this._dio);
 
   final Dio _dio;
 
-  Future<PosyanduModel> fetchPosyanduData({
-    bool allowMockFallback = true,
-  }) async {
+  /// Fetches the posyandu overview and immunization records.
+  Future<PosyanduModel> fetchPosyanduData() async {
     try {
       final response = await _dio.get(ApiEndpoints.posyanduOverview);
-      final payload = response.data;
+      
+      final apiResponse = ApiResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (data) => PosyanduModel.fromMap(data as Map<String, dynamic>),
+      );
 
-      if (payload is! Map<String, dynamic>) {
-        throw const FormatException('Format data posyandu tidak valid.');
+      if (!apiResponse.success || apiResponse.data == null) {
+        throw ServerException(apiResponse.message);
       }
 
-      return PosyanduModel.fromMap(payload);
+      return apiResponse.data!;
     } on DioException catch (error) {
-      if (allowMockFallback) {
-        return PosyanduModel.fromMap(_mockResponse);
+      throw ServerException(error.message ?? 'Gagal memuat data posyandu.');
+    }
+  }
+
+  /// Marks a posyandu schedule as completed via PATCH.
+  ///
+  /// On success, the mock/server moves the schedule from upcoming → completed
+  /// and the posyandu overview will reflect the updated state on next load.
+  Future<void> markScheduleCompleted(String scheduleId) async {
+    try {
+      final response = await _dio.patch(
+        ApiEndpoints.posyanduScheduleComplete(scheduleId),
+      );
+
+      final apiResponse = ApiResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (data) => data,
+      );
+
+      if (!apiResponse.success) {
+        throw ServerException(apiResponse.message);
       }
-      throw NetworkException.fromDioException(error);
-    } on FormatException {
-      if (allowMockFallback) {
-        return PosyanduModel.fromMap(_mockResponse);
+    } on DioException catch (error) {
+      throw ServerException(error.message ?? 'Gagal menandai jadwal selesai.');
+    }
+  }
+
+  /// Creates a new posyandu schedule via POST.
+  ///
+  /// Returns the saved [PosyanduScheduleItemModel] on success.
+  Future<PosyanduScheduleItemModel> addSchedule(
+    PosyanduScheduleItemEntity schedule,
+  ) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.posyanduSchedule,
+        data: {
+          'id': schedule.id,
+          'title': schedule.title,
+          'category': schedule.category,
+          'location': schedule.location,
+          'scheduled_at': schedule.scheduledAt.toIso8601String(),
+          'note': schedule.note,
+          'is_completed': false,
+        },
+      );
+
+      final apiResponse = ApiResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (data) =>
+            PosyanduScheduleItemModel.fromMap(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.success || apiResponse.data == null) {
+        throw ServerException(apiResponse.message);
       }
-      rethrow;
+
+      return apiResponse.data!;
+    } on DioException catch (error) {
+      throw ServerException(
+          error.message ?? 'Gagal menyimpan jadwal posyandu.');
     }
   }
 }
-
-final Map<String, dynamic> _mockResponse = {
-  'immunizations': [
-    {'name': 'BCG', 'is_done': true},
-    {'name': 'Polio 1', 'is_done': true},
-    {'name': 'DPT 1', 'is_done': true},
-    {'name': 'DPT 2', 'is_done': true},
-    {'name': 'DPT 3', 'is_done': true},
-    {'name': 'Campak', 'is_done': false},
-    {'name': 'MR', 'is_done': false},
-  ],
-  'upcoming_schedules': [
-    {
-      'id': 'upcoming-1',
-      'title': 'Posyandu & Vitamin A',
-      'category': 'Vitamin',
-      'location': 'Puskesmas Garuda',
-      'scheduled_at': DateTime.now()
-          .add(const Duration(days: 6))
-          .toIso8601String(),
-      'note': 'Bawa Buku KIA dan kartu imunisasi',
-      'is_completed': false,
-    },
-    {
-      'id': 'upcoming-2',
-      'title': 'Imunisasi MR (Campak)',
-      'category': 'Imunisasi',
-      'location': 'Puskesmas Garuda',
-      'scheduled_at': DateTime.now()
-          .add(const Duration(days: 30))
-          .toIso8601String(),
-      'is_completed': false,
-    },
-  ],
-  'completed_schedules': [
-    {
-      'id': 'history-1',
-      'title': 'Imunisasi DPT 3',
-      'category': 'Imunisasi',
-      'location': 'Puskesmas Garuda',
-      'scheduled_at': DateTime.now()
-          .subtract(const Duration(days: 30))
-          .toIso8601String(),
-      'is_completed': true,
-    },
-    {
-      'id': 'history-2',
-      'title': 'Timbang Rutin',
-      'category': 'Posyandu',
-      'location': 'Posyandu Mawar',
-      'scheduled_at': DateTime.now()
-          .subtract(const Duration(days: 58))
-          .toIso8601String(),
-      'is_completed': true,
-    },
-    {
-      'id': 'history-3',
-      'title': 'Vitamin A Agustus',
-      'category': 'Vitamin',
-      'location': 'Posyandu Mawar',
-      'scheduled_at': DateTime.now()
-          .subtract(const Duration(days: 90))
-          .toIso8601String(),
-      'is_completed': true,
-    },
-  ],
-};

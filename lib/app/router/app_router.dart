@@ -10,4 +10,5 @@ class AppRouter {
   static const posyandu = '/posyandu';
   static const quickAdd = '/quick-add';
   static const profile = '/profile';
+  static const notifications = '/notifications';
 }

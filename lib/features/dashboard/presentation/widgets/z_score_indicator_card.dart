@@ -1,10 +1,47 @@
 import 'package:flutter/material.dart';
 
 class ZScoreIndicatorCard extends StatelessWidget {
-  const ZScoreIndicatorCard({super.key});
+  final String? zScoreStatus;
+  final double? weightKg;
+  final double? heightCm;
+
+  const ZScoreIndicatorCard({
+    super.key,
+    this.zScoreStatus,
+    this.weightKg,
+    this.heightCm,
+  });
+
+  Color _getStatusColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('buruk')) return Colors.red[600]!;
+    if (s.contains('kurang') || s.contains('lebih')) return Colors.orange[600]!;
+    return Colors.green[600]!;
+  }
+
+  Color _getStatusBgColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('buruk')) return Colors.red[50]!;
+    if (s.contains('kurang') || s.contains('lebih')) return Colors.orange[50]!;
+    return Colors.green[50]!;
+  }
+
+  double _getIndicatorPosition(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('buruk')) return 0.12;
+    if (s.contains('kurang')) return 0.35;
+    if (s.contains('normal')) return 0.58;
+    if (s.contains('lebih')) return 0.80;
+    return 0.58;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final status = zScoreStatus ?? "Normal";
+    final statusColor = _getStatusColor(status);
+    final statusBgColor = _getStatusBgColor(status);
+    final dotPosition = _getIndicatorPosition(status);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -36,15 +73,15 @@ class ZScoreIndicatorCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green[50],
+                  color: statusBgColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  "Bulan ke-14",
+                  status,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green[700],
+                    color: statusColor,
                   ),
                 ),
               ),
@@ -71,7 +108,7 @@ class ZScoreIndicatorCard extends StatelessWidget {
             children: [
               const SizedBox(height: 12, width: double.infinity),
               Positioned(
-                left: MediaQuery.of(context).size.width * 0.45,
+                left: MediaQuery.of(context).size.width * dotPosition,
                 child: Container(
                   width: 12,
                   height: 12,
@@ -95,12 +132,12 @@ class ZScoreIndicatorCard extends StatelessWidget {
             text: TextSpan(
               style: const TextStyle(fontSize: 11, color: Colors.grey),
               children: [
-                const TextSpan(text: "Rayyan berada pada rentang "),
+                const TextSpan(text: "Status gizi anak berada pada rentang "),
                 TextSpan(
-                  text: "Normal",
+                  text: status,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.green[600],
+                    color: statusColor,
                   ),
                 ),
               ],

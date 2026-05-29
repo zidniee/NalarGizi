@@ -49,6 +49,10 @@ dependencies:
   smooth_page_indicator: ^1.2.1
   fl_chart: ^1.2.0
   syncfusion_flutter_charts: ^33.1.46
+  url_launcher: ^6.3.1
+  # supabase_flutter: ^2.12.4
+  # google_sign_in: ^7.2.0
+  # flutter_dotenv: ^6.0.1
 
 dev_dependencies:
   flutter_test:

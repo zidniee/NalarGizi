@@ -1,3 +1,4 @@
+import 'package:nalargizi/core/error/failures.dart';
 import '../entities/posyandu_entity.dart';
 import '../repositories/posyandu_repository.dart';
 
@@ -6,7 +7,10 @@ class GetPosyanduDataUseCase {
 
   final PosyanduRepository _repository;
 
-  Future<PosyanduEntity> call() {
-    return _repository.getPosyanduData();
+  Future<({PosyanduEntity? data, Failure? failure})> call({
+    int childId = 1,
+  }) {
+    return _repository.getPosyanduData(childId: childId);
   }
 }
+

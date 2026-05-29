@@ -8,7 +8,7 @@ class SplashPage extends StatelessWidget {
     return const Scaffold(
       body: Center(
         child: Text(
-          'NalarGizi',
+          'Nalar Gizi',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
         ),
       ),

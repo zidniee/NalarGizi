@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nalargizi/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:nalargizi/app/router/app_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class HomePage extends StatefulWidget {
@@ -60,15 +61,17 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _goToDashboard(BuildContext context) {
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const DashboardPage()));
+  Future<void> _completeOnboarding(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
+    if (context.mounted) {
+      Navigator.of(context).pushReplacementNamed(AppRouter.login);
+    }
   }
 
   void _goNext() {
     if (_currentIndex == _items.length - 1) {
-      _goToDashboard(context);
+      _completeOnboarding(context);
       return;
     }
 
@@ -145,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => _goToDashboard(context),
+                        onPressed: () => _completeOnboarding(context),
                         child: Text(
                           'Lewati',
                           style: TextStyle(
@@ -167,57 +170,62 @@ class _HomePageState extends State<HomePage> {
                         itemBuilder: (context, index) {
                           final page = _items[index];
 
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 112,
-                                height: 112,
-                                decoration: BoxDecoration(
-                                  color: page.color,
-                                  borderRadius: BorderRadius.circular(28),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x22000000),
-                                      blurRadius: 16,
-                                      offset: Offset(0, 8),
+                          return Center(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 112,
+                                    height: 112,
+                                    decoration: BoxDecoration(
+                                      color: page.color,
+                                      borderRadius: BorderRadius.circular(28),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x22000000),
+                                          blurRadius: 16,
+                                          offset: Offset(0, 8),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  page.icon,
-                                  color: Colors.white,
-                                  size: 50,
-                                ),
-                              ),
-                              const SizedBox(height: 36),
-                              Text(
-                                page.title,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 42 / 2,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF0F1E3B),
-                                  height: 1.25,
-                                ),
-                              ),
-                              const SizedBox(height: 22),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                ),
-                                child: Text(
-                                  page.description,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Color(0xFF334C6B),
-                                    height: 1.55,
+                                    child: Icon(
+                                      page.icon,
+                                      color: Colors.white,
+                                      size: 50,
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(height: 36),
+                                  Text(
+                                    page.title,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 42 / 2,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0F1E3B),
+                                      height: 1.25,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 22),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    child: Text(
+                                      page.description,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xFF334C6B),
+                                        height: 1.55,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 34),
+                                ],
                               ),
-                              const SizedBox(height: 34),
-                            ],
+                            ),
                           );
                         },
                       ),

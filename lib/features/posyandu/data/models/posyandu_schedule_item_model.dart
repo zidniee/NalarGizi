@@ -13,7 +13,7 @@ class PosyanduScheduleItemModel extends PosyanduScheduleItemEntity {
 
   factory PosyanduScheduleItemModel.fromMap(Map<String, dynamic> map) {
     return PosyanduScheduleItemModel(
-      id: map['id'] as String,
+      id: map['id'].toString(),
       title: map['title'] as String,
       category: map['category'] as String,
       location: map['location'] as String,

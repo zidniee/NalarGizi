@@ -1,12 +1,111 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_it/get_it.dart';
+import 'package:dio/dio.dart';
+import 'package:nalargizi/shared/widgets/posyandu_detail_bottom_sheet.dart';
 import 'package:nalargizi/features/posyandu/domain/entities/posyandu_schedule_item_entity.dart';
 
-class _ScheduleCategory {
+class ScheduleCategory {
   final String label;
   final Color color;
 
-  const _ScheduleCategory({required this.label, required this.color});
+  const ScheduleCategory({required this.label, required this.color});
 }
+
+class PosyanduCenter {
+  final int id;
+  final String name;
+  final String address;
+  final String leaderName;
+
+  const PosyanduCenter({
+    required this.id,
+    required this.name,
+    required this.address,
+    required this.leaderName,
+  });
+}
+
+class PosyanduScheduleTemplate {
+  final String title;
+  final String category;
+  final String description;
+
+  const PosyanduScheduleTemplate({
+    required this.title,
+    required this.category,
+    required this.description,
+  });
+}
+
+const List<PosyanduCenter> predefinedCenters = [
+  PosyanduCenter(
+    id: 1,
+    name: 'Posyandu Mawar 1',
+    address: 'Jl. Mawar Merah No. 45, RT 02/RW 03, Jakarta Selatan',
+    leaderName: 'Bidan Siti Aminah',
+  ),
+  PosyanduCenter(
+    id: 2,
+    name: 'Posyandu Melati 2',
+    address: 'Jl. Melati Raya No. 12, RT 05/RW 01, Jakarta Selatan',
+    leaderName: 'Bidan Lestari',
+  ),
+  PosyanduCenter(
+    id: 3,
+    name: 'Posyandu Anggrek 3',
+    address: 'Jl. Anggrek Indah No. 8, RT 01/RW 04, Jakarta Selatan',
+    leaderName: 'Bidan Dian',
+  ),
+];
+
+const List<PosyanduScheduleTemplate> predefinedTemplates = [
+  PosyanduScheduleTemplate(
+    title: 'Posyandu Balita & Timbang Rutin',
+    category: 'Posyandu',
+    description: 'Pemeriksaan berat, tinggi, lingkar kepala rutin bulanan balita.',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Pemberian Vitamin A Biru & Timbang',
+    category: 'Vitamin',
+    description: 'Pemberian Vitamin A dosis tinggi (kapsul biru 100.000 IU untuk bayi 6-11 bulan).',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Pemberian Vitamin A Merah & Timbang',
+    category: 'Vitamin',
+    description: 'Pemberian Vitamin A dosis tinggi (kapsul merah 200.000 IU untuk anak 12-59 bulan).',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Imunisasi BCG & Polio 1',
+    category: 'Imunisasi',
+    description: 'Pemberian vaksin BCG untuk mencegah tuberkulosis dan Polio tetes ke-1.',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Imunisasi DPT-HB-Hib 1 & Polio 2',
+    category: 'Imunisasi',
+    description: 'Pemberian vaksin DPT-HB-Hib ke-1 dan Polio tetes ke-2.',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Imunisasi DPT-HB-Hib 2 & Polio 3',
+    category: 'Imunisasi',
+    description: 'Pemberian vaksin DPT-HB-Hib ke-2 dan Polio tetes ke-3.',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Imunisasi DPT-HB-Hib 3 & Polio 4',
+    category: 'Imunisasi',
+    description: 'Pemberian vaksin DPT-HB-Hib ke-3 dan Polio tetes ke-4.',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Imunisasi Campak / MR',
+    category: 'Imunisasi',
+    description: 'Pemberian vaksin Campak/MR (Measles Rubella) pada usia 9 bulan.',
+  ),
+  PosyanduScheduleTemplate(
+    title: 'Imunisasi Campak / MR Booster',
+    category: 'Imunisasi',
+    description: 'Pemberian vaksin Campak/MR Booster lanjutan pada usia 18 bulan.',
+  ),
+];
 
 class AkanDatangSection extends StatelessWidget {
   final List<PosyanduScheduleItemEntity> items;
@@ -20,11 +119,11 @@ class AkanDatangSection extends StatelessWidget {
     required this.onMarkCompleted,
   });
 
-  static const _categories = [
-    _ScheduleCategory(label: 'Vitamin', color: Color(0xFFFF6B35)),
-    _ScheduleCategory(label: 'Imunisasi', color: Color(0xFF5B5CE6)),
-    _ScheduleCategory(label: 'Posyandu', color: Color(0xFF0EA5E9)),
-    _ScheduleCategory(label: 'Pemeriksaan', color: Color(0xFF22C55E)),
+  static const categories = [
+    ScheduleCategory(label: 'Vitamin', color: Color(0xFFFF6B35)),
+    ScheduleCategory(label: 'Imunisasi', color: Color(0xFF5B5CE6)),
+    ScheduleCategory(label: 'Posyandu', color: Color(0xFF0EA5E9)),
+    ScheduleCategory(label: 'Pemeriksaan', color: Color(0xFF22C55E)),
   ];
 
   Future<void> _showAddEventSheet(BuildContext context) async {
@@ -32,7 +131,7 @@ class AkanDatangSection extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AddEventSheet(categories: _categories),
+      builder: (context) => AddEventSheet(categories: categories),
     );
 
     if (newItem == null) {
@@ -132,6 +231,7 @@ class _ExpandableScheduleCard extends StatefulWidget {
 class _ExpandableScheduleCardState extends State<_ExpandableScheduleCard>
     with SingleTickerProviderStateMixin {
   bool _expanded = false;
+  bool _isNotificationEnabled = false;
 
   late final AnimationController _controller;
   late final Animation<double> _expandAnim;
@@ -144,6 +244,72 @@ class _ExpandableScheduleCardState extends State<_ExpandableScheduleCard>
       vsync: this,
     );
     _expandAnim = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _loadNotificationStatus();
+  }
+
+  Future<void> _loadNotificationStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isNotificationEnabled = prefs.getBool('posyandu_schedule_notif_${widget.item.id}') ?? false;
+    });
+  }
+
+  Future<void> _toggleNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final newValue = !_isNotificationEnabled;
+    await prefs.setBool('posyandu_schedule_notif_${widget.item.id}', newValue);
+    setState(() {
+      _isNotificationEnabled = newValue;
+    });
+
+    // Sinkronisasi dengan database notifikasi API
+    try {
+      final dio = GetIt.I<Dio>();
+      final intId = int.tryParse(widget.item.id.toString()) ?? DateTime.now().millisecondsSinceEpoch;
+      if (newValue) {
+        await dio.post('/api/profile/notifications', data: {
+          'id': intId,
+          'title': widget.item.title,
+          'message': 'Jangan lupa untuk menghadiri ${widget.item.title} di ${widget.item.location}.',
+          'type': 'posyandu',
+        });
+      } else {
+        await dio.delete('/api/profile/notifications', queryParameters: {
+          'id': intId,
+        });
+      }
+    } catch (e) {
+      debugPrint('Gagal menyelaraskan notifikasi: $e');
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                newValue ? Icons.notifications_active_rounded : Icons.notifications_off_rounded,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  newValue
+                      ? 'Pengingat diaktifkan untuk: ${widget.item.title}'
+                      : 'Pengingat dinonaktifkan.',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: newValue ? const Color(0xFF6366F1) : const Color(0xFF64748B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -256,23 +422,44 @@ class _ExpandableScheduleCardState extends State<_ExpandableScheduleCard>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Lokasi
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
-                            color: Color(0xFF94A3B8),
+                      InkWell(
+                        onTap: () {
+                          PosyanduDetailBottomSheet.show(
+                            context,
+                            posyanduName: item.location,
+                            onNotificationToggled: _loadNotificationStatus,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 16,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  item.location,
+                                  style: const TextStyle(
+                                    color: Color(0xFF475569),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 12,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            item.location,
-                            style: const TextStyle(
-                              color: Color(0xFF475569),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       // Catatan (jika ada)
                       if (item.note != null) ...[
@@ -342,14 +529,17 @@ class _ExpandableScheduleCardState extends State<_ExpandableScheduleCard>
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE9E8FF),
+                              color: _isNotificationEnabled ? const Color(0xFFEEF2FF) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _isNotificationEnabled ? const Color(0xFFC7D2FE) : Colors.transparent,
+                              ),
                             ),
                             child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.notifications_none,
-                                color: Color(0xFF6D65F8),
+                              onPressed: _toggleNotification,
+                              icon: Icon(
+                                _isNotificationEnabled ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
+                                color: _isNotificationEnabled ? const Color(0xFF6D65F8) : const Color(0xFF94A3B8),
                               ),
                             ),
                           ),
@@ -393,35 +583,33 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
-class _AddEventSheet extends StatefulWidget {
-  final List<_ScheduleCategory> categories;
+class AddEventSheet extends StatefulWidget {
+  final List<ScheduleCategory> categories;
 
-  const _AddEventSheet({required this.categories});
+  const AddEventSheet({super.key, required this.categories});
 
   @override
-  State<_AddEventSheet> createState() => _AddEventSheetState();
+  State<AddEventSheet> createState() => _AddEventSheetState();
 }
 
-class _AddEventSheetState extends State<_AddEventSheet> {
+class _AddEventSheetState extends State<AddEventSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _locationController = TextEditingController();
   final _noteController = TextEditingController();
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  late _ScheduleCategory _selectedCategory;
+  late PosyanduCenter _selectedCenter;
+  late PosyanduScheduleTemplate _selectedTemplate;
 
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.categories.first;
+    _selectedCenter = predefinedCenters.first;
+    _selectedTemplate = predefinedTemplates.first;
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _locationController.dispose();
     _noteController.dispose();
     super.dispose();
   }
@@ -482,9 +670,9 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     Navigator.of(context).pop(
       PosyanduScheduleItemEntity(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
-        title: _titleController.text.trim(),
-        category: _selectedCategory.label,
-        location: _locationController.text.trim(),
+        title: _selectedTemplate.title,
+        category: _selectedTemplate.category,
+        location: _selectedCenter.name,
         scheduledAt: scheduleDateTime,
         note: note.isEmpty ? null : note,
       ),
@@ -544,21 +732,174 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Isi data event sesuai kartu jadwal posyandu.',
+                    'Pilih lokasi Posyandu Center dan jenis kegiatan yang dijadwalkan.',
                     style: TextStyle(
                       color: Color(0xFF64748B),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _FormLabel(label: 'Nama Event'),
+                  
+                  _FormLabel(label: 'Lokasi Posyandu Center'),
                   const SizedBox(height: 8),
-                  _InputField(
-                    controller: _titleController,
-                    hintText: 'Contoh: Posyandu & Vitamin A',
-                    validator: _requiredValidator,
+                  DropdownMenu<PosyanduCenter>(
+                    initialSelection: _selectedCenter,
+                    enableSearch: true,
+                    enableFilter: true,
+                    expandedInsets: EdgeInsets.zero,
+                    inputDecorationTheme: const InputDecorationTheme(
+                      filled: true,
+                      fillColor: Color(0xFFF8FAFC),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        borderSide: BorderSide(color: Color(0xFF5B5CE6), width: 1.2),
+                      ),
+                    ),
+                    dropdownMenuEntries: predefinedCenters
+                        .map(
+                          (center) => DropdownMenuEntry<PosyanduCenter>(
+                            value: center,
+                            label: center.name,
+                          ),
+                        )
+                        .toList(),
+                    onSelected: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedCenter = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, color: Color(0xFF16A34A), size: 16),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Alamat: ${_selectedCenter.address}',
+                                style: const TextStyle(
+                                  color: Color(0xFF14532D),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Bidan Pengelola: ${_selectedCenter.leaderName}',
+                          style: const TextStyle(
+                            color: Color(0xFF15803D),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
+
+                  _FormLabel(label: 'Event / Kegiatan'),
+                  const SizedBox(height: 8),
+                  DropdownMenu<PosyanduScheduleTemplate>(
+                    initialSelection: _selectedTemplate,
+                    enableSearch: true,
+                    enableFilter: true,
+                    expandedInsets: EdgeInsets.zero,
+                    inputDecorationTheme: const InputDecorationTheme(
+                      filled: true,
+                      fillColor: Color(0xFFF8FAFC),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        borderSide: BorderSide(color: Color(0xFF5B5CE6), width: 1.2),
+                      ),
+                    ),
+                    dropdownMenuEntries: predefinedTemplates
+                        .map(
+                          (temp) => DropdownMenuEntry<PosyanduScheduleTemplate>(
+                            value: temp,
+                            label: temp.title,
+                          ),
+                        )
+                        .toList(),
+                    onSelected: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedTemplate = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Color(0xFF2563EB), size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Kategori: ${_selectedTemplate.category}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E40AF),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _selectedTemplate.description,
+                          style: const TextStyle(
+                            color: Color(0xFF1E3A8A),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
                   _FormLabel(label: 'Tanggal'),
                   const SizedBox(height: 8),
                   _PickerField(
@@ -579,37 +920,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                     onTap: _pickTime,
                   ),
                   const SizedBox(height: 14),
-                  _FormLabel(label: 'Kategori'),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<_ScheduleCategory>(
-                    initialValue: _selectedCategory,
-                    decoration: _inputDecoration(),
-                    items: widget.categories
-                        .map(
-                          (category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category.label),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value == null) {
-                        return;
-                      }
-                      setState(() {
-                        _selectedCategory = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  _FormLabel(label: 'Lokasi'),
-                  const SizedBox(height: 8),
-                  _InputField(
-                    controller: _locationController,
-                    hintText: 'Contoh: Puskesmas Garuda',
-                    validator: _requiredValidator,
-                  ),
-                  const SizedBox(height: 14),
+                  
                   _FormLabel(label: 'Catatan Pengingat'),
                   const SizedBox(height: 8),
                   _InputField(
@@ -689,13 +1000,11 @@ class _FormLabel extends StatelessWidget {
 class _InputField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
-  final String? Function(String?)? validator;
   final int maxLines;
 
   const _InputField({
     required this.controller,
     required this.hintText,
-    this.validator,
     this.maxLines = 1,
   });
 
@@ -703,7 +1012,6 @@ class _InputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      validator: validator,
       maxLines: maxLines,
       decoration: _inputDecoration(hintText: hintText),
     );
@@ -792,12 +1100,7 @@ InputDecoration _inputDecoration({String? hintText}) {
   );
 }
 
-String? _requiredValidator(String? value) {
-  if (value == null || value.trim().isEmpty) {
-    return 'Field ini wajib diisi';
-  }
-  return null;
-}
+
 
 String _monthLabel(int month) {
   const labels = [

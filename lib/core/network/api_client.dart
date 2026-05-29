@@ -1,6 +1,7 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:nalargizi/core/network/mock_interceptor.dart';
 
 class ApiClient {
   ApiClient({Dio? dio, this.baseUrl = defaultBaseUrl})
@@ -19,6 +20,7 @@ class ApiClient {
             ),
           ) {
     if (kDebugMode) {
+      _dio.interceptors.add(MockInterceptor());
       _dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,
@@ -38,3 +40,4 @@ class ApiClient {
 
   Dio get dio => _dio;
 }
+

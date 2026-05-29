@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class TipHarianCard extends StatelessWidget {
-  const TipHarianCard({super.key});
+  final String? title;
+  final String? content;
+
+  const TipHarianCard({
+    super.key,
+    this.title,
+    this.content,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +39,7 @@ class TipHarianCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "TIP HARI INI",
+                  title?.toUpperCase() ?? "TIP HARI INI",
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -41,7 +48,7 @@ class TipHarianCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Berikan ASI minimal 2 tahun untuk daya tahan optimal.",
+                  content ?? "Berikan ASI minimal 2 tahun untuk daya tahan optimal.",
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.amber[900],

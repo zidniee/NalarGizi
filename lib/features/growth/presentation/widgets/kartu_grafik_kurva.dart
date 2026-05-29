@@ -1,21 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:nalargizi/features/growth/domain/entities/growth_entity.dart';
 
 class KartuGrafikKurva extends StatelessWidget {
+  final List<GrowthRecordEntity> records;
   final bool isBeratBadan;
 
-  const KartuGrafikKurva({super.key, required this.isBeratBadan});
+  const KartuGrafikKurva({
+    super.key, 
+    required this.records,
+    required this.isBeratBadan,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Menyiapkan data agar kodenya lebih rapi
-    final List<ChartData> dataTubuh = isBeratBadan
-        ? [ChartData(9, 8.1), ChartData(10, 8.55), ChartData(11, 8.9), ChartData(12, 9.2), ChartData(13, 9.45), ChartData(14, 9.8)]
-        : [ChartData(9, 71), ChartData(10, 72), ChartData(11, 73), ChartData(12, 74.5), ChartData(13, 75), ChartData(14, 76.5)];
+    // Map records to chronological order (oldest to newest)
+    final List<ChartData> dataTubuh = records.reversed.map((r) {
+      return ChartData(
+        r.ageMonths.toDouble(),
+        isBeratBadan ? r.weightKg : r.heightCm,
+      );
+    }).toList();
 
-    final List<ChartData> dataWho = isBeratBadan
-        ? [ChartData(9, 9.45), ChartData(14, 9.45)]
-        : [ChartData(9, 74), ChartData(14, 74)];
+    // Safe calculation for X axis min/max
+    double minX = 0;
+    double maxX = 12;
+    if (dataTubuh.isNotEmpty) {
+      if (dataTubuh.length == 1) {
+        final x = dataTubuh.first.bulan;
+        minX = (x - 1).clamp(0, double.infinity);
+        maxX = x + 1;
+      } else {
+        final bulans = dataTubuh.map((d) => d.bulan).toList();
+        minX = bulans.reduce((a, b) => a < b ? a : b);
+        maxX = bulans.reduce((a, b) => a > b ? a : b);
+      }
+    }
+
+    // Safe calculation for Y axis min/max
+    double minY = isBeratBadan ? 8.0 : 70.0;
+    double maxY = isBeratBadan ? 10.0 : 78.0;
+    if (dataTubuh.isNotEmpty) {
+      final nilais = dataTubuh.map((d) => d.nilai).toList();
+      final minVal = nilais.reduce((a, b) => a < b ? a : b);
+      final maxVal = nilais.reduce((a, b) => a > b ? a : b);
+
+      if (dataTubuh.length == 1) {
+        minY = isBeratBadan 
+            ? (minVal - 1.0).clamp(0, double.infinity) 
+            : (minVal - 5.0).clamp(0, double.infinity);
+        maxY = isBeratBadan 
+            ? maxVal + 1.0 
+            : maxVal + 5.0;
+      } else {
+        minY = isBeratBadan 
+            ? (minVal - 0.5).clamp(0, double.infinity) 
+            : (minVal - 2.0).clamp(0, double.infinity);
+        maxY = isBeratBadan 
+            ? maxVal + 0.5 
+            : maxVal + 2.0;
+      }
+    }
+
+    // Standard WHO reference line based on minX and maxX
+    final List<ChartData> dataWho = [
+      ChartData(minX, isBeratBadan ? 9.45 : 74.0),
+      ChartData(maxX, isBeratBadan ? 9.45 : 74.0),
+    ];
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -60,153 +111,158 @@ class KartuGrafikKurva extends StatelessWidget {
                 const SizedBox(width: 8),
                 _buildStatusChip('Normal ✓', const Color(0xFFD1FAE5), const Color(0xFF10B981)),
                 const SizedBox(width: 8),
-                _buildStatusChip('Normal ✓', const Color(0xFFD1FAE5), const Color(0xFF10B981)),
-                const SizedBox(width: 8),
                 _buildStatusChip('Lebih', const Color(0xFFFFEDD5), const Color(0xFFF97316)),
               ],
             ),
           ),
           const SizedBox(height: 32),
           // CHART AREA SYNCFUSION
-          SizedBox(
-            height: 200,
-            child: SfCartesianChart(
-              margin: EdgeInsets.zero,
-              plotAreaBorderWidth: 0,
-              primaryXAxis: NumericAxis(
-                minimum: 9,
-                maximum: 14,
-                interval: 1,
-                labelFormat: 'Bln {value}',
-                axisLine: const AxisLine(width: 0),
-                majorTickLines: const MajorTickLines(size: 0),
-                majorGridLines: MajorGridLines(width: 1, color: Colors.grey.shade100),
-                labelStyle: TextStyle(color: Colors.grey.shade400, fontSize: 10),
+          if (dataTubuh.isEmpty)
+            Container(
+              height: 200,
+              alignment: Alignment.center,
+              child: const Text(
+                'Belum ada data pertumbuhan untuk digambar.',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
-              primaryYAxis: NumericAxis(
-                minimum: isBeratBadan ? 8.0 : 70.0,
-                maximum: isBeratBadan ? 10.0 : 78.0,
-                axisLine: const AxisLine(width: 0),
-                majorTickLines: const MajorTickLines(size: 0),
-                majorGridLines: MajorGridLines(width: 1, color: Colors.grey.shade50),
-                labelStyle: TextStyle(color: Colors.grey.shade400, fontSize: 10),
-              ),
-              trackballBehavior: TrackballBehavior(
-                enable: true,
-                activationMode: ActivationMode.singleTap,
-                hideDelay: 1500, // Penyelamat Navbar
-                lineType: TrackballLineType.vertical,
-                lineColor: Colors.grey.shade300,
-                lineWidth: 2,
-                tooltipDisplayMode: TrackballDisplayMode.nearestPoint,
-                // ─── ANIMASI SMOOTH: builder dibungkus AnimatedSwitcher ───
-                builder: (BuildContext context, TrackballDetails trackballDetails) {
-                  if (trackballDetails.seriesIndex == 0) return const SizedBox.shrink();
+            )
+          else
+            SizedBox(
+              height: 200,
+              child: SfCartesianChart(
+                margin: EdgeInsets.zero,
+                plotAreaBorderWidth: 0,
+                primaryXAxis: NumericAxis(
+                  minimum: minX,
+                  maximum: maxX,
+                  interval: 1,
+                  labelFormat: 'Bln {value}',
+                  axisLine: const AxisLine(width: 0),
+                  majorTickLines: const MajorTickLines(size: 0),
+                  majorGridLines: MajorGridLines(width: 1, color: Colors.grey.shade100),
+                  labelStyle: TextStyle(color: Colors.grey.shade400, fontSize: 10),
+                ),
+                primaryYAxis: NumericAxis(
+                  minimum: minY,
+                  maximum: maxY,
+                  axisLine: const AxisLine(width: 0),
+                  majorTickLines: const MajorTickLines(size: 0),
+                  majorGridLines: MajorGridLines(width: 1, color: Colors.grey.shade50),
+                  labelStyle: TextStyle(color: Colors.grey.shade400, fontSize: 10),
+                ),
+                trackballBehavior: TrackballBehavior(
+                  enable: true,
+                  activationMode: ActivationMode.singleTap,
+                  hideDelay: 1500,
+                  lineType: TrackballLineType.vertical,
+                  lineColor: Colors.grey.shade300,
+                  lineWidth: 2,
+                  tooltipDisplayMode: TrackballDisplayMode.nearestPoint,
+                  builder: (BuildContext context, TrackballDetails trackballDetails) {
+                    if (trackballDetails.seriesIndex == 0) return const SizedBox.shrink();
 
-                  final data = trackballDetails.point!;
+                    final data = trackballDetails.point!;
 
-                  final num xValue = data.x ?? 0;
-                  final num yValue = data.y ?? 0;
+                    final num xValue = data.x ?? 0;
+                    final num yValue = data.y ?? 0;
 
-                  final nilai = isBeratBadan ? yValue.toString() : yValue.toInt().toString();
-                  final satuan = isBeratBadan ? "kg" : "cm";
+                    final nilai = isBeratBadan ? yValue.toStringAsFixed(1) : yValue.toInt().toString();
+                    final satuan = isBeratBadan ? "kg" : "cm";
 
-                  // Key unik per titik agar AnimatedSwitcher tahu kapan harus animasi
-                  final tooltipKey = ValueKey('${xValue}_$yValue');
+                    final tooltipKey = ValueKey('${xValue}_$yValue');
 
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          // Geser sedikit dari bawah ke posisi normal saat muncul
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.15),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: AnimatedContainer(
-                      key: tooltipKey,
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.15),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
                           ),
-                        ],
-                      ),
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          text: 'Bulan ${xValue.toInt()}\n',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '$nilai $satuan',
-                              style: const TextStyle(
-                                color: Color(0xFFFCA5A5),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
+                        );
+                      },
+                      child: AnimatedContainer(
+                        key: tooltipKey,
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutCubic,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            text: 'Bulan ${xValue.toInt()}\n',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '$nilai $satuan',
+                                style: const TextStyle(
+                                  color: Color(0xFFFCA5A5),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+                    );
+                  },
+                ),
+                series: <CartesianSeries>[
+                  LineSeries<ChartData, double>(
+                    dataSource: dataWho,
+                    xValueMapper: (ChartData data, _) => data.bulan,
+                    yValueMapper: (ChartData data, _) => data.nilai,
+                    color: const Color(0xFF10B981),
+                    width: 2,
+                    dashArray: const <double>[5, 5],
+                    enableTooltip: false,
+                  ),
+                  SplineAreaSeries<ChartData, double>(
+                    dataSource: dataTubuh,
+                    xValueMapper: (ChartData data, _) => data.bulan,
+                    yValueMapper: (ChartData data, _) => data.nilai,
+                    splineType: SplineType.monotonic,
+                    borderWidth: 3,
+                    borderColor: const Color(0xFFF43F5E),
+                    gradient: LinearGradient(
+                      colors: [const Color(0xFFF43F5E).withOpacity(0.2), Colors.transparent],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
-                  );
-                },
+                    markerSettings: const MarkerSettings(
+                      isVisible: true,
+                      color: Color(0xFFF43F5E),
+                      borderColor: Colors.white,
+                      borderWidth: 2,
+                      height: 10,
+                      width: 10,
+                    ),
+                  ),
+                ],
               ),
-              series: <CartesianSeries>[
-                LineSeries<ChartData, double>(
-                  dataSource: dataWho,
-                  xValueMapper: (ChartData data, _) => data.bulan,
-                  yValueMapper: (ChartData data, _) => data.nilai,
-                  color: const Color(0xFF10B981),
-                  width: 2,
-                  dashArray: const <double>[5, 5],
-                  enableTooltip: false,
-                ),
-                SplineAreaSeries<ChartData, double>(
-                  dataSource: dataTubuh,
-                  xValueMapper: (ChartData data, _) => data.bulan,
-                  yValueMapper: (ChartData data, _) => data.nilai,
-                  splineType: SplineType.monotonic,
-                  borderWidth: 3,
-                  borderColor: const Color(0xFFF43F5E),
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFFF43F5E).withOpacity(0.2), Colors.transparent],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  markerSettings: const MarkerSettings(
-                    isVisible: true,
-                    color: Color(0xFFF43F5E),
-                    borderColor: Colors.white,
-                    borderWidth: 2,
-                    height: 10,
-                    width: 10,
-                  ),
-                ),
-              ],
             ),
-          ),
         ],
       ),
     );

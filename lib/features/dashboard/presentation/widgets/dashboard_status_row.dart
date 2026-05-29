@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 
 class DashboardStatusRow extends StatelessWidget {
-  const DashboardStatusRow({super.key});
+  final double? weightKg;
+  final int? ageMonths;
+  final String? zScoreStatus;
+
+  const DashboardStatusRow({
+    super.key,
+    this.weightKg,
+    this.ageMonths,
+    this.zScoreStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _buildStatCard("Usia Saat Ini", "14", "Bulan"),
+        _buildStatCard("Usia Saat Ini", ageMonths?.toString() ?? "14", "Bulan"),
         const SizedBox(width: 12),
-        _buildStatCard("Berat Badan", "9.8", "kg"),
+        _buildStatCard("Berat Badan", weightKg != null ? weightKg!.toStringAsFixed(1) : "9.8", "kg"),
         const SizedBox(width: 12),
-        _buildStatusCard(),
+        _buildStatusCard(zScoreStatus ?? "Normal"),
       ],
     );
   }
@@ -57,7 +66,11 @@ class DashboardStatusRow extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard(String status) {
+    final isNormal = status.toLowerCase() == 'normal';
+    final statusColor = isNormal ? Colors.green : Colors.orange;
+    final statusIcon = isNormal ? Icons.check_circle : Icons.warning;
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -65,28 +78,28 @@ class DashboardStatusRow extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 12),
-                SizedBox(width: 4),
+                Icon(statusIcon, color: statusColor, size: 12),
+                const SizedBox(width: 4),
                 Text(
                   "STATUS",
                   style: TextStyle(
-                    color: Colors.green,
+                    color: statusColor,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
-              "Normal",
+              status,
               style: TextStyle(
-                color: Colors.green,
+                color: statusColor,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:nalargizi/app/router/app_router.dart';
+import '../../domain/entities/dashboard_entity.dart';
 
 class InfoPosyanduBanner extends StatelessWidget {
-  const InfoPosyanduBanner({super.key});
+  final PosyanduCenterEntity? center;
+
+  const InfoPosyanduBanner({
+    super.key,
+    this.center,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Beralih ke halaman fitur Posyandu...'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        Navigator.pushReplacementNamed(context, AppRouter.posyandu);
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -36,20 +38,24 @@ class InfoPosyanduBanner extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "📣 INFO POSYANDU",
-                          style: TextStyle(
+                        Text(
+                          center != null
+                              ? "📣 INFO POSYANDU: ${center!.name.toUpperCase()}"
+                              : "📣 INFO POSYANDU",
+                          style: const TextStyle(
                             color: Color(0xFFFFEDD5),
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          "Bawa Buku KIA setiap kunjungan Posyandu!",
-                          style: TextStyle(
+                        Text(
+                          center != null
+                              ? "Kunjungi ${center!.name} di ${center!.address} (Bidan: ${center!.leaderName})."
+                              : "Bawa Buku KIA setiap kunjungan Posyandu!",
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                             height: 1.3,
                           ),

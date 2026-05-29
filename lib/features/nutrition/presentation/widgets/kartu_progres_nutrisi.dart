@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../domain/entities/nutrition_entity.dart';
 
 class KartuProgresNutrisi extends StatelessWidget {
-  const KartuProgresNutrisi({super.key});
+  final NutritionDailyEntity? dailyData;
+
+  const KartuProgresNutrisi({super.key, this.dailyData});
 
   @override
   Widget build(BuildContext context) {
+    final carbs = dailyData?.consumedCarbs ?? 0;
+    final carbsTarget = dailyData?.targetCarbs ?? 150;
+    final carbsFraction = carbsTarget > 0 ? (carbs / carbsTarget).clamp(0.0, 1.0) : 0.0;
+
+    final protein = dailyData?.consumedProtein ?? 0;
+    final proteinTarget = dailyData?.targetProtein ?? 40;
+    final proteinFraction = proteinTarget > 0 ? (protein / proteinTarget).clamp(0.0, 1.0) : 0.0;
+
+    final fat = dailyData?.consumedFat ?? 0;
+    final fatTarget = dailyData?.targetFat ?? 35;
+    final fatFraction = fatTarget > 0 ? (fat / fatTarget).clamp(0.0, 1.0) : 0.0;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -17,12 +32,11 @@ class KartuProgresNutrisi extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Ringkasan Nutrisi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Ringkasan Nutrisi Makro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 20),
-          _buildProgressItem('Protein (g)', '12/20', 12/20, const Color(0xFFF43F5E)), // Pink
-          _buildProgressItem('Zat Besi (mg)', '6/11', 6/11, Colors.orange), // Oren/Kuning
-          _buildProgressItem('Kalsium (mg)', '180/300', 180/300, Colors.blue), // Biru
-          _buildProgressItem('Vitamin A (mcg)', '200/400', 200/400, const Color(0xFFFF8A00)), // Oren tua
+          _buildProgressItem('Karbohidrat (g)', '$carbs/$carbsTarget', carbsFraction, Colors.orange),
+          _buildProgressItem('Protein (g)', '$protein/$proteinTarget', proteinFraction, const Color(0xFFF43F5E)),
+          _buildProgressItem('Lemak (g)', '$fat/$fatTarget', fatFraction, Colors.blue),
         ],
       ),
     );

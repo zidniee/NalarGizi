@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
 
 class RingkasanNutrisiHeader extends StatelessWidget {
-  const RingkasanNutrisiHeader({super.key});
+  const RingkasanNutrisiHeader({
+    super.key,
+    required this.totalCalories,
+    required this.targetCalories,
+    required this.remainingCalories,
+    required this.dateLabel,
+  });
+
+  final int totalCalories;
+  final int targetCalories;
+  final int remainingCalories;
+  final String dateLabel;
 
   @override
   Widget build(BuildContext context) {
+    final double progressValue = targetCalories > 0 
+        ? (totalCalories / targetCalories).clamp(0.0, 1.0) 
+        : 0.0;
+
     return Container(
       padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 30),
       decoration: const BoxDecoration(
@@ -22,7 +37,7 @@ class RingkasanNutrisiHeader extends StatelessWidget {
         children: [
           const Text('Jurnal Nutrisi Harian', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('3 Maret 2026', style: TextStyle(color: Colors.white, fontSize: 14)),
+          Text(dateLabel, style: const TextStyle(color: Colors.white, fontSize: 14)),
           const SizedBox(height: 24),
           // Kotak efek transparan (Glassmorphism)
           Container(
@@ -37,18 +52,18 @@ class RingkasanNutrisiHeader extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildInfoKolom('Total Kalori', '🔥 330', 'kkal', isBold: true),
+                    _buildInfoKolom('Total Kalori', '🔥 $totalCalories', 'kkal', isBold: true),
                     Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
-                    _buildInfoKolom('Target', '800', ''),
+                    _buildInfoKolom('Target', '$targetCalories', ''),
                     Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
-                    _buildInfoKolom('Sisa', '470', ''),
+                    _buildInfoKolom('Sisa', '$remainingCalories', ''),
                   ],
                 ),
                 const SizedBox(height: 16),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
-                    value: 330 / 800,
+                    value: progressValue,
                     minHeight: 8,
                     backgroundColor: Colors.white.withOpacity(0.3),
                     color: Colors.yellow, // Progress bar kuning
